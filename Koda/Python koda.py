@@ -7,8 +7,13 @@ PEPPER_IP = "192.168.0.131"   # popravi z dejanskim IP
 PORT = 9559
 
 # govorjenje
-'''tts = ALProxy("ALTextToSpeech", PEPPER_IP, PORT)
-tts.say("Hej Tina, zdaj govorim iz Visual Studio Code!")'''
+tts = ALProxy("ALTextToSpeech", PEPPER_IP, PORT)
+tts.say("Hej Tina, zdaj govorim iz Visual Studio Code!")
 
-tablet = ALProxy("ALTabletService", PEPPER_IP, PORT)
+#Zeženi server 
+#Set-Location 'C:\Users\uil\Desktop\Pepper\Koda' & 'C:\Python27\python.exe' -m SimpleHTTPServer 8000
+
+tablet = ALProxy("ALTabletService", PEPPER_IP, PORT) 
 tablet.showWebview("http://192.168.0.102:8000/tablet.html")  # Use your PC's IP and file name
+
+# link browser http://localhost:8000/tablet.html

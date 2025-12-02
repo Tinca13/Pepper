@@ -1,0 +1,12 @@
+{
+  "name": "pepper-tablet",
+  "version": "1.0.0",
+  "description": "Pepper tablet test with LESS",
+  "scripts": {
+    "build": "lessc style.less style.css",
+    "watch": "lessc --watch style.less style.css"
+  },
+  "devDependencies": {
+    "less": "^4.2.0"
+  }
+}

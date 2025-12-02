@@ -1,15 +1,20 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Pepper Tablet Test</title>
+    <title class="title">Pepper Tablet Test</title>
     <meta charset="UTF-8">
-    <style>
-        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
-        h1 { color: #0078d7; }
-    </style>
+
+    <!-- povezava na CSS, ki je compilan iz LESS -->
+    <link rel="stylesheet" type="text/css" href="style.css">
 </head>
+
 <body>
     <h1>Hello from Pepper!</h1>
     <p>If you see this, your tablet connection works.</p>
+
+    <div class="button-container">
+        <button class="round-btn">Gumb 1</button>
+        <button class="round-btn">Gumb 2</button>
+    </div>
 </body>
 </html>

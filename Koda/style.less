@@ -1,0 +1,47 @@
+@primary: #0078d7;
+@primary-dark: darken(@primary, 15%);
+@button-size: 70vh;
+
+.title{
+    color: red;
+}
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+h1 {
+    color: @primary;
+
+}
+
+.button-container {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.round-btn {
+    height: @button-size;
+    width: @button-size;
+    background-color: @primary;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 28px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:active {
+        background-color: @primary-dark;
+    }
+}
