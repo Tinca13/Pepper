@@ -17,3 +17,5 @@ tablet = ALProxy("ALTabletService", PEPPER_IP, PORT)
 tablet.showWebview("http://192.168.0.102:8000/tablet.html")  # Use your PC's IP and file name
 
 # link browser http://localhost:8000/tablet.html
+
+#Tina
