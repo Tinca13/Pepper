@@ -6,7 +6,6 @@
     <title>Pepper Sah</title>
     <style>
         * { box-sizing: border-box; -webkit-user-select: none; }
-        
         body {
             margin: 0; padding: 0;
             width: 1280px; height: 800px;
@@ -16,53 +15,27 @@
             align-items: center; justify-content: center;
             overflow: hidden;
         }
-
-        .sidebar {
-            width: 400px;
-            text-align: center;
-            padding: 20px;
-        }
-
-        h1 { font-size: 80px; color: #2c3e50; margin: 0 0 10px 0; }
-        #status { font-size: 30px; color: #00ADEE; font-weight: bold; margin-bottom: 30px; height: 40px; }
-
+        .sidebar { width: 400px; text-align: center; padding: 20px; }
+        h1 { font-size: 70px; color: #2c3e50; margin: 0; }
+        #status { font-size: 30px; color: #00ADEE; font-weight: bold; margin: 20px 0; min-height: 80px; }
         .btn {
             display: block; width: 280px; margin: 15px auto;
             padding: 20px; font-size: 24px; color: white;
             border: none; border-radius: 50px; cursor: pointer;
-            text-decoration: none; font-weight: bold;
-            text-align: center;
+            text-decoration: none; font-weight: bold; text-align: center;
         }
         .btn-reset { background-color: #e74c3c; }
         .btn-back { background-color: #34495e; }
-
-        .game-area {
-            width: 800px;
-            display: flex; justify-content: center; align-items: center;
-        }
-
-        /* Uporaba tabele namesto Grida za stabilnost */
-        table {
-            border-collapse: collapse;
-            border: 10px solid #34495e;
-            table-layout: fixed;
-            width: 640px; height: 640px;
-        }
-
+        .game-area { width: 800px; display: flex; justify-content: center; }
+        table { border-collapse: collapse; border: 10px solid #34495e; width: 640px; height: 640px; }
         td {
-            width: 80px; height: 80px;
-            text-align: center;
-            vertical-align: middle;
-            font-size: 60px;
-            cursor: pointer;
-            padding: 0;
-            line-height: 1;
+            width: 80px; height: 80px; text-align: center; vertical-align: middle;
+            font-size: 60px; cursor: pointer; padding: 0;
         }
-
         .white-sq { background-color: #ecf0f1; }
         .black-sq { background-color: #95a5a6; }
         .selected { background-color: #f1c40f !important; }
-
+        .winner { color: #e74c3c; font-size: 40px !important; }
     </style>
 </head>
 <body>
@@ -75,8 +48,7 @@
     </div>
 
     <div class="game-area">
-        <table id="chess-table">
-            </table>
+        <table id="chess-table"></table>
     </div>
 
     <script>
@@ -97,6 +69,7 @@
         };
 
         var selectedSq = null;
+        var gameActive = true;
 
         function drawBoard() {
             var table = document.getElementById('chess-table');
@@ -105,10 +78,11 @@
                 html += "<tr>";
                 for (var c = 0; c < 8; c++) {
                     var colorClass = ((r + c) % 2 === 0) ? 'white-sq' : 'black-sq';
-                    var piece = pieces[boardState[r][c]] || '';
+                    var pieceCode = boardState[r][c];
+                    var pieceChar = pieces[pieceCode] || '';
                     var selClass = (selectedSq && selectedSq.r === r && selectedSq.c === c) ? ' selected' : '';
                     
-                    html += "<td id='cell-" + r + "-" + c + "' class='" + colorClass + selClass + "' onclick='handleSqClick(" + r + ", " + c + ")'>" + piece + "</td>";
+                    html += "<td id='cell-" + r + "-" + c + "' class='" + colorClass + selClass + "' onclick='handleSqClick(" + r + ", " + c + ")'>" + pieceChar + "</td>";
                 }
                 html += "</tr>";
             }
@@ -116,25 +90,25 @@
         }
 
         function handleSqClick(r, c) {
+            if (!gameActive) return;
             var piece = boardState[r][c];
             
             if (selectedSq) {
-                // Če klikneš na isto polje, prekliči izbiro
                 if (selectedSq.r === r && selectedSq.c === c) {
                     selectedSq = null;
                     drawBoard();
                     return;
                 }
                 
-                // Premik
                 movePiece(selectedSq.r, selectedSq.c, r, c);
                 selectedSq = null;
                 drawBoard();
                 
+                if (checkGameOver()) return;
+
                 document.getElementById('status').innerText = "Pepper razmišlja...";
                 setTimeout(pepperMove, 1000);
             } else {
-                // Izberi samo svoje (bele) figure
                 if (piece && piece === piece.toUpperCase()) {
                     selectedSq = {r: r, c: c};
                     drawBoard();
@@ -147,28 +121,72 @@
             boardState[fromR][fromC] = '';
         }
 
+        function checkGameOver() {
+            var whiteKing = false;
+            var blackKing = false;
+
+            for (var r = 0; r < 8; r++) {
+                for (var c = 0; c < 8; c++) {
+                    if (boardState[r][c] === 'K') whiteKing = true;
+                    if (boardState[r][c] === 'k') blackKing = true;
+                }
+            }
+
+            if (!whiteKing) {
+                endGame("Pepper je zmagal!");
+                return true;
+            }
+            if (!blackKing) {
+                endGame("Zmagala si!");
+                return true;
+            }
+            return false;
+        }
+
+        function endGame(msg) {
+            gameActive = false;
+            var statusEl = document.getElementById('status');
+            statusEl.innerText = msg;
+            statusEl.classList.add('winner');
+        }
+
         function pepperMove() {
+            if (!gameActive) return;
             var moves = [];
+            
+            // Pepper išče vse svoje figure (male črke)
             for (var r = 0; r < 8; r++) {
                 for (var c = 0; c < 8; c++) {
                     var p = boardState[r][c];
-                    // Pepper (črne figure - male črke)
                     if (p && p === p.toLowerCase()) {
-                        // Preprost premik naprej za test
-                        if (r + 1 < 8 && boardState[r+1][c] === '') {
-                            moves.push({fR: r, fC: c, tR: r+1, tC: c});
+                        // PREPROSTA LOGIKA: 
+                        // Če lahko poje tvojo figuro (velika črka), jo bo pojedel
+                        var directions = [[1,0], [1,1], [1,-1], [0,1], [0,-1]];
+                        for (var i=0; i<directions.length; i++) {
+                            var nr = r + directions[i][0];
+                            var nc = c + directions[i][1];
+                            if (nr>=0 && nr<8 && nc>=0 && nc<8) {
+                                var target = boardState[nr][nc];
+                                if (target === '' || target === target.toUpperCase()) {
+                                    moves.push({fR: r, fC: c, tR: nr, tC: nc, priority: (target !== '' ? 2 : 1)});
+                                }
+                            }
                         }
                     }
                 }
             }
             
             if (moves.length > 0) {
-                var m = moves[Math.floor(Math.random() * moves.length)];
+                // Sortiraj, da Pepper raje "poje" figuro, če lahko
+                moves.sort(function(a, b) { return b.priority - a.priority; });
+                var m = moves[0]; // Vzame najboljšo ali prvo možno potezo
                 movePiece(m.fR, m.fC, m.tR, m.tC);
             }
             
             drawBoard();
-            document.getElementById('status').innerText = "Ti si na vrsti!";
+            if (!checkGameOver()) {
+                document.getElementById('status').innerText = "Ti si na vrsti!";
+            }
         }
 
         window.onload = drawBoard;
