@@ -1,20 +1,97 @@
 <!DOCTYPE html>
-<html>
+<html lang="sl">
 <head>
-    <title class="title">Pepper Tablet Test</title>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=1280, height=800, user-scalable=no">
+    <title>Pepper Meni</title>
+    <style>
+        * { 
+            box-sizing: border-box; 
+            -webkit-user-select: none; 
+            user-select: none;
+            touch-action: manipulation;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            width: 1280px;
+            height: 800px;
+            background-color: #f4f7f6;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
 
-    <!-- povezava na CSS, ki je compilan iz LESS -->
-    <link rel="stylesheet" type="text/css" href="style.css">
+        h1 {
+            font-size: 60px;
+            color: #2c3e50;
+            margin-bottom: 50px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .menu-container {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px;
+            width: 90%;
+        }
+
+        .game-card {
+            width: 350px;
+            height: 250px;
+            background-color: white;
+            border-radius: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .game-card:active {
+            transform: scale(0.95);
+        }
+
+        /* Različne barve robov za igre */
+        .tictactoe { border-bottom: 20px solid #00ADEE; }
+        .memory { border-bottom: 20px solid #2ecc71; }
+        .sah { border-bottom: 20px solid #f1c40f; }
+
+        .label {
+            font-size: 40px;
+            font-weight: bold;
+            color: #34495e;
+            text-transform: uppercase;
+        }
+    </style>
 </head>
-
 <body>
-    <h1>Hello from Tina!</h1>
-    <p>If you see this, your tablet connection works.</p>
 
-    <div class="button-container">
-        <button class="round-btn">Gumb 1</button>
-        <button class="round-btn">Gumb 2</button>
+    <h1>Izberi igro</h1>
+
+    <div class="menu-container">
+        <div class="game-card tictactoe" onclick="window.location.href='TicTacToe.html'">
+            <div class="label">Križci in<br>Krožci</div>
+        </div>
+
+        <div class="game-card memory" onclick="window.location.href='memory.html'">
+            <div class="label">Spomin</div>
+        </div>
+
+        <div class="game-card sah" onclick="window.location.href='sah.html'">
+            <div class="label">Šah</div>
+        </div>
     </div>
+
 </body>
 </html>
