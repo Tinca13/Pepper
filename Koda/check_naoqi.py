@@ -11,7 +11,7 @@ tablet.enableWifi() # Ensure tablet wifi is on
 
         # 2. Define the URL 
         # We use port 8000 because that's where we will run our server
-url = "http://{}:8000/tablet.html".format(PC_IP)
+url = "http://{}:8000/novtablet.html".format(PC_IP)
         
 print("Telling Pepper to open: " + url)
         
