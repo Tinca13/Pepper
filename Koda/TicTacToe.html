@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1280, height=800, user-scalable=no">
+    <title>Pepper Tic Tac Toe</title>
+    <style>
+        * { 
+            box-sizing: border-box; 
+            -webkit-user-select: none; 
+            user-select: none;
+            touch-action: manipulation;
+        }
+        
+        html, body {
+            margin: 0; padding: 0;
+            width: 100%; height: 100%;
+            background-color: #f0f2f5;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+
+        body {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sidebar {
+            width: 35%;
+            text-align: center;
+            padding: 20px;
+        }
+
+        h1 { font-size: 4rem; color: #2c3e50; margin: 0; }
+        #status { font-size: 2rem; color: #00ADEE; font-weight: bold; margin: 30px 0; height: 60px; }
+
+        .btn-reset {
+            padding: 20px 40px; font-size: 1.5rem;
+            background-color: #e74c3c; color: white;
+            border: none; border-radius: 50px; cursor: pointer;
+            width: 250px; margin-bottom: 20px;
+        }
+
+        .btn-back {
+            padding: 15px 30px; font-size: 1.2rem;
+            background-color: #95a5a6; color: white;
+            border: none; border-radius: 50px; cursor: pointer;
+            width: 250px;
+        }
+
+        .game-area {
+            width: 65%;
+            display: flex; justify-content: center; align-items: center;
+        }
+
+        table {
+            border-collapse: separate; border-spacing: 15px;
+            background-color: #34495e; padding: 15px; border-radius: 25px;
+        }
+
+        td {
+            width: 170px; height: 170px;
+            background-color: white; border-radius: 15px;
+            text-align: center; vertical-align: middle;
+            font-size: 90px; font-weight: bold; color: #2c3e50;
+            cursor: pointer;
+        }
+
+        .winner-cell { background-color: #2ecc71 !important; color: white !important; }
+        .disabled { pointer-events: none; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h1>KRIŽCI<br>IN<br>KROŽCI</h1>
+        <div id="status">Ti si na vrsti (X)</div>
+        <button class="btn-reset" onclick="location.reload()">PONASTAVI</button>
+        <button class="btn-back" onclick="window.location.href='tablet.html'">NAZAJ</button>
+    </div>
+
+    <div class="game-area">
+        <table id="game-board">
+            <tr>
+                <td onclick="playerMove(0, this)"></td>
+                <td onclick="playerMove(1, this)"></td>
+                <td onclick="playerMove(2, this)"></td>
+            </tr>
+            <tr>
+                <td onclick="playerMove(3, this)"></td>
+                <td onclick="playerMove(4, this)"></td>
+                <td onclick="playerMove(5, this)"></td>
+            </tr>
+            <tr>
+                <td onclick="playerMove(6, this)"></td>
+                <td onclick="playerMove(7, this)"></td>
+                <td onclick="playerMove(8, this)"></td>
+            </tr>
+        </table>
+    </div>
+
+    <script>
+        // Uporabljamo VAR namesto LET/CONST za kompatibilnost s starimi tablicami
+        var board = ["", "", "", "", "", "", "", "", ""];
+        var active = true;
+        var playerSign = "X";
+        var pepperSign = "O";
+
+        function playerMove(index, element) {
+            if (board[index] === "" && active) {
+                // Igralčeva poteza
+                makeMove(index, playerSign);
+                
+                if (active) {
+                    document.getElementById('status').innerText = "Pepper razmišlja...";
+                    document.getElementById('game-board').className = 'disabled';
+                    
+                    // Počakamo sekundo, da Pepper odigra
+                    setTimeout(function() {
+                        pepperMove();
+                    }, 1000);
+                }
+            }
+        }
+
+        function pepperMove() {
+            if (!active) return;
+
+            var bestMove = findBestMove();
+            if (bestMove !== -1) {
+                makeMove(bestMove, pepperSign);
+            }
+            
+            document.getElementById('game-board').className = '';
+            if (active) document.getElementById('status').innerText = "Ti si na vrsti (X)";
+        }
+
+        function makeMove(index, sign) {
+            board[index] = sign;
+            var cells = document.getElementsByTagName('td');
+            cells[index].innerText = sign;
+            cells[index].style.color = (sign === playerSign) ? "#2c3e50" : "#00ADEE";
+            
+            var winCombo = checkWinner();
+            if (winCombo) {
+                active = false;
+                document.getElementById('status').innerText = (sign === playerSign ? "Zmagala si!" : "Pepper je zmagal!");
+                for(var i=0; i<winCombo.length; i++) {
+                    cells[winCombo[i]].className = 'winner-cell';
+                }
+            } else if (board.indexOf("") === -1) {
+                document.getElementById('status').innerText = "IZENAČENO!";
+                active = false;
+            }
+        }
+
+        function findBestMove() {
+            var wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+            
+            // 1. Pepper poskusi zmagati
+            for (var i = 0; i < wins.length; i++) {
+                var c = wins[i];
+                if (checkTwoOfThree(c[0], c[1], c[2], pepperSign)) return getEmpty(c[0], c[1], c[2]);
+            }
+
+            // 2. Pepper blokira tebe
+            for (var i = 0; i < wins.length; i++) {
+                var c = wins[i];
+                if (checkTwoOfThree(c[0], c[1], c[2], playerSign)) return getEmpty(c[0], c[1], c[2]);
+            }
+
+            // 3. Naključna poteza
+            var available = [];
+            for (var j = 0; j < board.length; j++) {
+                if (board[j] === "") available.push(j);
+            }
+            if (available.length > 0) {
+                return available[Math.floor(Math.random() * available.length)];
+            }
+            return -1;
+        }
+
+        function checkTwoOfThree(a, b, c, sign) {
+            var s = 0;
+            var e = 0;
+            if (board[a] === sign) s++; else if (board[a] === "") e++;
+            if (board[b] === sign) s++; else if (board[b] === "") e++;
+            if (board[c] === sign) s++; else if (board[c] === "") e++;
+            return (s === 2 && e === 1);
+        }
+
+        function getEmpty(a, b, c) {
+            if (board[a] === "") return a;
+            if (board[b] === "") return b;
+            if (board[c] === "") return c;
+        }
+
+        function checkWinner() {
+            var wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+            for (var i = 0; i < wins.length; i++) {
+                var c = wins[i];
+                if (board[c[0]] !== "" && board[c[0]] === board[c[1]] && board[c[0]] === board[c[2]]) return c;
+            }
+            return null;
+        }
+    </script>
+</body>
+</html>

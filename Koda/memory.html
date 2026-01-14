@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1280, height=800, user-scalable=no">
+    <title>Pepper Spomin</title>
+    <style>
+        /* Osnovne nastavitve za tablico */
+        * { 
+            box-sizing: border-box; 
+            -webkit-user-select: none; 
+            user-select: none;
+            touch-action: manipulation;
+        }
+        
+        body {
+            margin: 0; padding: 0;
+            width: 1280px; height: 800px;
+            background-color: #f0f2f5;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* Stranski meni */
+        .sidebar {
+            width: 350px;
+            text-align: center;
+            padding: 20px;
+        }
+
+        h1 { font-size: 60px; color: #2c3e50; margin: 0; }
+        #status { font-size: 30px; color: #00ADEE; font-weight: bold; margin: 20px 0; height: 80px; }
+        #score { font-size: 25px; margin-bottom: 30px; color: #34495e; }
+
+        /* Gumbi */
+        .btn {
+            display: inline-block;
+            padding: 15px 30px; font-size: 22px;
+            color: white; border: none; border-radius: 50px; 
+            cursor: pointer; width: 250px; margin-bottom: 15px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .btn-reset { background-color: #e74c3c; }
+        .btn-back { background-color: #95a5a6; }
+
+        /* Igralno območje */
+        .game-area {
+            width: 850px;
+            display: flex; justify-content: center; align-items: center;
+        }
+
+        table {
+            border-collapse: separate; border-spacing: 15px;
+        }
+
+        td {
+            width: 150px; height: 150px;
+            background-color: #34495e;
+            border-radius: 20px;
+            text-align: center; vertical-align: middle;
+            font-size: 80px;
+            cursor: pointer;
+            color: transparent;
+            border: 4px solid #2c3e50;
+            transition: background-color 0.2s;
+        }
+
+        /* Odprta karta */
+        td.flipped {
+            background-color: white;
+            color: #2c3e50;
+            pointer-events: none;
+        }
+
+        /* Najden par */
+        td.matched {
+            background-color: #2ecc71;
+            color: white;
+            pointer-events: none;
+            border-color: #27ae60;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h1>SPOMIN</h1>
+        <div id="status">Ti si na vrsti!</div>
+        <div id="score">Ti: 0 | Pepper: 0</div>
+        
+        <button class="btn btn-reset" onclick="location.reload()">NOVA IGRA</button>
+        <a href="tablet.html" class="btn btn-back">NAZAJ</a>
+    </div>
+
+    <div class="game-area">
+        <table id="memory-board">
+            </table>
+    </div>
+
+    <script>
+        // SEZNAM VARNIH IKON (6 parov)
+        // Uporabljeni so najbolj osnovni emojiji, ki jih Pepper pozna
+        var icons = ["🍎", "🍎", "🍌", "🍌", "🍇", "🍇", "🍒", "🍒", "🍍", "🍍", "🍓", "🍓"];
+        
+        var boardIcons = [];
+        var flippedCards = [];
+        var pepperMemory = {}; 
+        var playerScore = 0;
+        var pepperScore = 0;
+        var canClick = true;
+        var isPepperTurn = false;
+
+        // Funkcija za mešanje kart
+        function shuffle(array) {
+            var m = array.length, t, i;
+            while (m) {
+                i = Math.floor(Math.random() * m--);
+                t = array[m];
+                array[m] = array[i];
+                array[i] = t;
+            }
+            return array;
+        }
+
+        // Generiranje tabele
+        function createBoard() {
+            boardIcons = shuffle(icons.slice());
+            var table = document.getElementById("memory-board");
+            var html = "";
+            var index = 0;
+            for (var r = 0; r < 3; r++) {
+                html += "<tr>";
+                for (var c = 0; c < 4; c++) {
+                    html += "<td id='card-" + index + "' onclick='handleCardClick(" + index + ")'>?</td>";
+                    index++;
+                }
+                html += "</tr>";
+            }
+            table.innerHTML = html;
+        }
+
+        function handleCardClick(id) {
+            if (!canClick || isPepperTurn) return;
+            revealCard(id);
+        }
+
+        function revealCard(id) {
+            var card = document.getElementById("card-" + id);
+            if (!card || card.className !== "") return;
+
+            card.innerHTML = boardIcons[id];
+            card.className = "flipped";
+            
+            // Pepper si zapomni karto
+            pepperMemory[id] = boardIcons[id];
+            flippedCards.push({ id: id, icon: boardIcons[id] });
+
+            if (flippedCards.length === 2) {
+                canClick = false;
+                setTimeout(checkMatch, 800);
+            }
+        }
+
+        function checkMatch() {
+            var c1 = flippedCards[0];
+            var c2 = flippedCards[1];
+            var el1 = document.getElementById("card-" + c1.id);
+            var el2 = document.getElementById("card-" + c2.id);
+
+            if (c1.icon === c2.icon) {
+                // PAR NAJDEN
+                el1.className = "matched";
+                el2.className = "matched";
+                
+                delete pepperMemory[c1.id];
+                delete pepperMemory[c2.id];
+
+                if (isPepperTurn) pepperScore++; else playerScore++;
+                updateScoreDisplay();
+                
+                flippedCards = [];
+                
+                if ((playerScore + pepperScore) === 6) {
+                    var winMsg = playerScore > pepperScore ? "Zmagala si!" : "Pepper je zmagal!";
+                    if(playerScore === pepperScore) winMsg = "Izenačeno!";
+                    document.getElementById("status").innerHTML = winMsg;
+                } else {
+                    if (isPepperTurn) {
+                        setTimeout(pepperTurn, 1000);
+                    } else {
+                        canClick = true;
+                    }
+                }
+            } else {
+                // NI PAR
+                el1.className = ""; el1.innerHTML = "?";
+                el2.className = ""; el2.innerHTML = "?";
+                flippedCards = [];
+                
+                if (isPepperTurn) {
+                    isPepperTurn = false;
+                    document.getElementById("status").innerHTML = "Ti si na vrsti!";
+                    canClick = true;
+                } else {
+                    isPepperTurn = true;
+                    document.getElementById("status").innerHTML = "Pepper razmišlja...";
+                    setTimeout(pepperTurn, 1200);
+                }
+            }
+        }
+
+        function pepperTurn() {
+            var firstId = -1;
+            var secondId = -1;
+            var avail = [];
+            
+            for (var i = 0; i < 12; i++) {
+                if (document.getElementById("card-" + i).className === "") avail.push(i);
+            }
+
+            // Pepper išče par v svojem spominu
+            for (var k1 in pepperMemory) {
+                for (var k2 in pepperMemory) {
+                    if (k1 !== k2 && pepperMemory[k1] === pepperMemory[k2]) {
+                        if (document.getElementById("card-"+k1).className === "" && 
+                            document.getElementById("card-"+k2).className === "") {
+                            firstId = parseInt(k1);
+                            secondId = parseInt(k2);
+                        }
+                    }
+                }
+            }
+
+            // Če ne ve ničesar, ugiba prvo karto
+            if (firstId === -1) {
+                firstId = avail[Math.floor(Math.random() * avail.length)];
+            }
+
+            revealCard(firstId);
+
+            // Čez sekundo odpre drugo karto
+            setTimeout(function() {
+                if (secondId === -1) {
+                    var icon = boardIcons[firstId];
+                    for (var k in pepperMemory) {
+                        if (k != firstId && pepperMemory[k] === icon && 
+                            document.getElementById("card-"+k).className === "") {
+                            secondId = parseInt(k);
+                        }
+                    }
+                }
+                // Če še vedno ne ve, ugiba drugo karto
+                if (secondId === -1) {
+                    var avail2 = [];
+                    for (var j = 0; j < 12; j++) {
+                        if (document.getElementById("card-" + j).className === "") avail2.push(j);
+                    }
+                    secondId = avail2[Math.floor(Math.random() * avail2.length)];
+                }
+                revealCard(secondId);
+            }, 1000);
+        }
+
+        function updateScoreDisplay() {
+            document.getElementById("score").innerHTML = "Ti: " + playerScore + " | Pepper: " + pepperScore;
+        }
+
+        // Zaženi ob nalaganju
+        window.onload = function() {
+            createBoard();
+        };
+    </script>
+</body>
+</html>
